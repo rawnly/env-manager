@@ -16,11 +16,6 @@ async fn main() -> anyhow::Result<()> {
 
     let has_dotenv = tokio::fs::try_exists(&filename).await?;
 
-    if !has_dotenv {
-        println!("No {filename} file found");
-        return Ok(());
-    }
-
     match args.cmd {
         SubCommand::ListFiles => {
             let mut entries = tokio::fs::read_dir(".").await?;
@@ -41,6 +36,11 @@ async fn main() -> anyhow::Result<()> {
         }
 
         SubCommand::List(ListArgs { format }) => {
+            if !has_dotenv {
+                println!("No {filename} file found");
+                return Ok(());
+            }
+
             let values = get_env(&filename).await?;
 
             match format {
@@ -61,6 +61,11 @@ async fn main() -> anyhow::Result<()> {
         }
 
         SubCommand::Get { key } => {
+            if !has_dotenv {
+                println!("No {filename} file found");
+                return Ok(());
+            }
+
             let values = get_env(&filename).await?;
 
             if let Some(value) = values.get(&key) {
@@ -71,6 +76,11 @@ async fn main() -> anyhow::Result<()> {
         }
 
         SubCommand::Set { key, value } => {
+            if !has_dotenv {
+                println!("No {filename} file found");
+                return Ok(());
+            }
+
             let mut values = get_env(&filename).await?;
 
             values.insert(key.clone(), value.clone());
