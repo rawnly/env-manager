@@ -1,10 +1,12 @@
 [package]
-name = "dotenv"
-version = "0.1.0"
+name = "env-manager"
+version = "0.0.1"
 edition = "2021"
 description = "Manage env files with ease"
 authors = ["Federico Vitale <mail@fedevitale.dev>"]
 license = "MIT"
+homepage = "https://github.com/rawnly/env-manager"
+repository = "https://github.com/rawnly/env-manager"
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -16,3 +18,6 @@ serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.107"
 serde_yaml = "0.9.25"
 tokio = { version = "1.32.0", features = ["full"] }
+
+[[bin]]
+name = "dotenv"
