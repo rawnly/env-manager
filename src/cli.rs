@@ -17,19 +17,15 @@ pub enum SubCommand {
     /// Print all .env variables
     List(ListArgs),
 
+    /// List all env files
     ListFiles,
 
     /// Set environment
-    Set {
-        key: String,
-        value: String,
-    },
+    Set { key: String, value: String },
 
     // don't use flags
     /// Get environment
-    Get {
-        key: String,
-    },
+    Get { key: String },
 }
 
 #[derive(Parser, Debug)]
