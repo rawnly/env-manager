@@ -4,7 +4,7 @@ Manage dotenv files via cli
 
 ## Usage
 
-```
+```sh
 Usage: dotenv [OPTIONS] <COMMAND>
 
 Commands:
@@ -22,8 +22,8 @@ Options:
 
 ## Example
 
-```
-$ http POST https://my-service-auth.com/auth/sign-in username=root password=toor \
+```sh
+http POST https://my-service-auth.com/auth/sign-in username=root password=toor \
     | jq -r .accessToken \
     | xargs dotenv set ACCESS_TOKEN
 ```
