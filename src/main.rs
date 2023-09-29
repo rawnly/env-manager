@@ -19,29 +19,39 @@ enum SubCommand {
 struct Cli {
     #[clap(subcommand)]
     cmd: SubCommand,
+
+    /// Set stage
+    #[clap(short, long, global = true)]
+    stage: Option<String>,
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Cli::parse();
 
-    let has_dotenv = tokio::fs::try_exists(".env").await?;
+    let mut filename = ".env".to_string();
+
+    if let Some(stage) = args.stage {
+        filename = format!(".env.{}", stage);
+    }
+
+    let has_dotenv = tokio::fs::try_exists(&filename).await?;
 
     if !has_dotenv {
-        println!("No .env file found");
+        println!("No {filename} file found");
         return Ok(());
     }
 
     match args.cmd {
         SubCommand::List => {
-            let values = get_env().await?;
+            let values = get_env(&filename).await?;
 
             for (key, value) in values {
                 println!("{}={}", key, value);
             }
         }
         SubCommand::Get { key } => {
-            let values = get_env().await?;
+            let values = get_env(&filename).await?;
 
             if let Some(value) = values.get(&key) {
                 println!("{}", value);
@@ -50,7 +60,7 @@ async fn main() -> anyhow::Result<()> {
             }
         }
         SubCommand::Set { key, value } => {
-            let mut values = get_env().await?;
+            let mut values = get_env(&filename).await?;
 
             values.insert(key.clone(), value.clone());
 
@@ -69,13 +79,17 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-
-async fn get_env() -> anyhow::Result<HashMap<String, String>> {
+async fn get_env(filename: &str) -> anyhow::Result<HashMap<String, String>> {
     // find .env file in the cwd
-    let file_content = tokio::fs::read_to_string(".env").await?;
+    let file_content = tokio::fs::read_to_string(filename).await?;
     let mut hashmap: HashMap<String, String> = HashMap::new();
 
     file_content.split('\n').for_each(|row| {
+        // skip comments
+        if row.starts_with('#') {
+            return;
+        };
+
         if let Some((a, b)) = row.split_once('=') {
             hashmap.insert(a.to_string(), b.to_string());
         }
