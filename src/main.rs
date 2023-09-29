@@ -81,7 +81,7 @@ async fn main() -> anyhow::Result<()> {
                 file_content.push_str(&format!("{}={}\n", key, value));
             }
 
-            tokio::fs::write(".env", file_content).await?;
+            tokio::fs::write(&filename, file_content).await?;
 
             println!("{}={}", key, value);
         }
