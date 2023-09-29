@@ -2,6 +2,19 @@
 
 Manage dotenv files via cli
 
+## Installation
+
+```
+    cargo install env-manager
+```
+
+Homebrew (soon)
+
+```
+    brew tap rawnly/tap
+    brew install env-manager
+```
+
 ## Usage
 
 ```sh
