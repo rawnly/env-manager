@@ -1,11 +1,23 @@
 use std::collections::HashMap;
 
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+enum Format {
+    Json,
+    Yaml,
+}
+
+#[derive(Args, Debug)]
+struct ListArgs {
+    #[clap(short, long)]
+    format: Option<Format>,
+}
 
 #[derive(Subcommand, Debug)]
 enum SubCommand {
     /// Print all .env variables
-    List,
+    List(ListArgs),
 
     /// Set environment
     Set { key: String, value: String },
@@ -16,6 +28,7 @@ enum SubCommand {
 }
 
 #[derive(Parser, Debug)]
+#[command(version)]
 struct Cli {
     #[clap(subcommand)]
     cmd: SubCommand,
@@ -43,11 +56,23 @@ async fn main() -> anyhow::Result<()> {
     }
 
     match args.cmd {
-        SubCommand::List => {
+        SubCommand::List(ListArgs { format }) => {
             let values = get_env(&filename).await?;
 
-            for (key, value) in values {
-                println!("{}={}", key, value);
+            match format {
+                Some(Format::Json) => {
+                    let json_string = serde_json::to_string_pretty(&values)?;
+                    println!("{}", json_string);
+                }
+                Some(Format::Yaml) => {
+                    let yaml_string = serde_yaml::to_string(&values)?;
+                    println!("{}", yaml_string);
+                }
+                None => {
+                    for (key, value) in values {
+                        println!("{}={}", key, value);
+                    }
+                }
             }
         }
         SubCommand::Get { key } => {
