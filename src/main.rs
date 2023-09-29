@@ -1,42 +1,8 @@
+mod cli;
+
+use clap::Parser;
+use cli::{Cli, Format, ListArgs, SubCommand};
 use std::collections::HashMap;
-
-use clap::{Args, Parser, Subcommand, ValueEnum};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-enum Format {
-    Json,
-    Yaml,
-}
-
-#[derive(Args, Debug)]
-struct ListArgs {
-    #[clap(short, long)]
-    format: Option<Format>,
-}
-
-#[derive(Subcommand, Debug)]
-enum SubCommand {
-    /// Print all .env variables
-    List(ListArgs),
-
-    /// Set environment
-    Set { key: String, value: String },
-
-    // don't use flags
-    /// Get environment
-    Get { key: String },
-}
-
-#[derive(Parser, Debug)]
-#[command(version)]
-struct Cli {
-    #[clap(subcommand)]
-    cmd: SubCommand,
-
-    /// Set stage
-    #[clap(short, long, global = true)]
-    stage: Option<String>,
-}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -56,6 +22,24 @@ async fn main() -> anyhow::Result<()> {
     }
 
     match args.cmd {
+        SubCommand::ListFiles => {
+            let mut entries = tokio::fs::read_dir(".").await?;
+
+            while let Some(entry) = entries.next_entry().await? {
+                let path = entry.path();
+
+                if path.is_file()
+                    && path
+                        .file_name()
+                        .unwrap()
+                        .to_string_lossy()
+                        .starts_with(".env")
+                {
+                    println!("{}", path.file_name().unwrap().to_string_lossy());
+                }
+            }
+        }
+
         SubCommand::List(ListArgs { format }) => {
             let values = get_env(&filename).await?;
 
@@ -75,6 +59,7 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
         }
+
         SubCommand::Get { key } => {
             let values = get_env(&filename).await?;
 
@@ -84,6 +69,7 @@ async fn main() -> anyhow::Result<()> {
                 println!("No value found for key: {}", key);
             }
         }
+
         SubCommand::Set { key, value } => {
             let mut values = get_env(&filename).await?;
 
